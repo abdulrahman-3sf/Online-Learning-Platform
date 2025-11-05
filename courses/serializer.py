@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser
+from .models import CustomUser, UserProfile
 from django.contrib.auth import authenticate
 
 class UserRegisterationSerializer(serializers.ModelSerializer):
@@ -47,3 +47,32 @@ class UserLoginSerializer(serializers.Serializer):
 
         data['user'] = user
         return data
+    
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = ['phone_number', 'date_of_birth', 'expertise']
+
+class UserSerializer(serializers.ModelSerializer):
+    profile = UserProfileSerializer()
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'email', 'username', 'first_name', 'last_name', 
+                  'role', 'bio', 'profile_picture', 'profile', 'date_joined']
+        read_only_fields = ['id', 'email', 'date_joined']
+
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop('profile', None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if profile_data:
+            profile = instance.profile
+            for attr, value in profile_data.items():
+                setattr(profile, attr, value)
+            profile.save()
+
+        return instance
