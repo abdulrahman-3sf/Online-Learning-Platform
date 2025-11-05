@@ -149,3 +149,9 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
 AUTH_USER_MODEL = 'courses.CustomUser'
+
+
+AUTHENTICATION_BACKENDS = [
+    'courses.backends.EmailBackend',  # Your custom backend
+    'django.contrib.auth.backends.ModelBackend',  # Keep default as fallback
+]
