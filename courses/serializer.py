@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import CustomUser
 from django.contrib.auth import authenticate
 
-class UserRegisterationSerializers(serializers.ModelSerializer):
+class UserRegisterationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True) # show this only when creating/updating, dont show it when reading
 
     class Meta:
@@ -12,6 +12,11 @@ class UserRegisterationSerializers(serializers.ModelSerializer):
             'password': {'write_only': True}
         }
 
+    def validate_password(self, value):
+        if len(value) < 8:
+            raise serializers.ValidationError({'password': 'Passwords must be at least 8 characters long!'})
+        return value
+
     def validate(self, data):
         if data['password'] != data['password2']:
             raise serializers.ValidationError({'password': 'Passwords must match!'})
@@ -20,15 +25,9 @@ class UserRegisterationSerializers(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data.pop('password2')
 
-        user = CustomUser(
-            username = validated_data['username'],
-            email = validated_data['email'],
-            first_name = validated_data['first_name'],
-            last_name = validated_data['last_name'],
-            role = validated_data['role']
-        )
-
-        user.set_password(validated_data['password']) # will hash the password
+        password = validated_data.pop('password')
+        user = CustomUser.objects.create(**validated_data)
+        user.set_password(password) # will hash the password
         user.save()
 
         return user
