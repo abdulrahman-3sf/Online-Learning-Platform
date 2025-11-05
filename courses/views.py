@@ -2,7 +2,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import UserRegisterationSerializer
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import UserRegisterationSerializer, UserLoginSerializer, UserSerializer
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -17,3 +18,24 @@ def register_view(request):
             return Response({'error': 'Faild to create user', 'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_view(request):
+    serializer = UserLoginSerializer(data=request.data)
+
+    if serializer.is_valid():
+        user = serializer.validated_data['user']
+        refresh = RefreshToken.for_user(user)
+
+        user_serializer = UserSerializer(user)
+
+        response_data = {
+            'access_token': str(refresh.access_token),
+            'refresh_token': str(refresh),
+            'user': user_serializer.data
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
+    
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
