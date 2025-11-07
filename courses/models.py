@@ -93,3 +93,29 @@ class CourseModule(models.Model):
 
     def __str__(self):
         return f'{self.course.title} - {self.title}'
+    
+class Lesson(models.Model):
+    LESSON_TYPE_CHOICES = (
+        ('VIDEO', 'Video'),
+        ('ARTICLE', 'Article'),
+        ('DOCUMENT', 'Document')
+    )
+
+    module = models.ForeignKey(CourseModule, on_delete=models.SET_NULL, related_name='lessons')
+    title = models.CharField(max_length=100)
+    content = models.TextField(blank=True, null=True)
+    lesson_type = models.CharField(choices=LESSON_TYPE_CHOICES, default='VIDEO')
+    order = models.IntegerField(unique=True)
+    
+    video_url = models.URLField(blank=True, null=True)
+    document_file = models.FileField(upload_to='lessons/documents/',blank=True, null=True)
+
+    duration = models.IntegerField(help_text='Duration in minutes')
+    is_preview = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['order']
+        unique_together = ['module', 'order']
+
+    def __str__(self):
+        return f'{self.module.title} - {self.title}'
