@@ -42,34 +42,35 @@ class UserProfile(models.Model):
         verbose_name_plural = 'User Profiles'
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(unique=True)
     description = models.TextField(blank=True, null=True)
 
     class Meta:
         verbose_name_plural = 'Categories'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
     
 class Course(models.Model):
     LEVEL_CHOICES = (
-        ('BEGINNER', 'Biginner'),
+        ('BEGINNER', 'Beginner'),
         ('INTERMEDIATE', 'Intermediate'),
         ('ADVANCED', 'Advanced')
     )
 
-    title = models.CharField(max_length=100)
-    slug = models.SlugField(unique=True)
-    description = models.TextField(blank=True, null=True)
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(unique=True, max_length=200)
+    description = models.TextField()
     thumbnail = models.ImageField(upload_to='courses/thumbnails/', blank=True, null=True)
 
     instructor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='courses')
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='courses')
 
-    price = models.DecimalField(max_digits=7, decimal_places=2)
-    level = models.CharField(choices=LEVEL_CHOICES, default='BEGINNER')
-    duration = models.IntegerField(help_text='Duration in minutes')
+    price = models.DecimalField(max_digits=7, decimal_places=2, default=0.00)
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, default='BEGINNER')
+    duration = models.IntegerField(blank=True, null=True, help_text='Duration in minutes')
     is_published = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -77,19 +78,23 @@ class Course(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        verbose_name = 'Course'
+        verbose_name_plural = 'Courses'
 
     def __str__(self):
         return self.title
     
 class CourseModule(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='models')
-    title = models.CharField(max_length=100)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='modules')
+    title = models.CharField(max_length=200)
     description = models.TextField(blank=True, null=True)
-    order = models.IntegerField(unique=True)
+    order = models.IntegerField()
 
     class Meta:
         ordering = ['order']
         unique_together = ['course', 'order']
+        verbose_name = 'Course Module'
+        verbose_name_plural = 'Course Modules'
 
     def __str__(self):
         return f'{self.course.title} - {self.title}'
@@ -101,21 +106,23 @@ class Lesson(models.Model):
         ('DOCUMENT', 'Document')
     )
 
-    module = models.ForeignKey(CourseModule, on_delete=models.SET_NULL, related_name='lessons')
-    title = models.CharField(max_length=100)
-    content = models.TextField(blank=True, null=True)
-    lesson_type = models.CharField(choices=LESSON_TYPE_CHOICES, default='VIDEO')
-    order = models.IntegerField(unique=True)
+    module = models.ForeignKey(CourseModule, on_delete=models.CASCADE, related_name='lessons')
+    title = models.CharField(max_length=200)
+    content = models.TextField(blank=True, null=True, help_text='Text content for article lessons')
+    lesson_type = models.CharField(max_length=20, choices=LESSON_TYPE_CHOICES, default='VIDEO')
+    order = models.IntegerField()
     
-    video_url = models.URLField(blank=True, null=True)
-    document_file = models.FileField(upload_to='lessons/documents/',blank=True, null=True)
+    video_url = models.URLField(blank=True, null=True, help_text='YouTube or Vimeo URL')
+    document_file = models.FileField(upload_to='lessons/documents/',blank=True, null=True, help_text='PDF, DOCX, etc.')
 
-    duration = models.IntegerField(help_text='Duration in minutes')
-    is_preview = models.BooleanField(default=False)
+    duration = models.IntegerField(blank=True, null=True, help_text='Duration in minutes')
+    is_preview = models.BooleanField(default=False, help_text='Can non-enrolled students view this lesson?')
 
     class Meta:
         ordering = ['order']
         unique_together = ['module', 'order']
+        verbose_name = 'Lesson'
+        verbose_name_plural = 'Lessons'
 
     def __str__(self):
         return f'{self.module.title} - {self.title}'
