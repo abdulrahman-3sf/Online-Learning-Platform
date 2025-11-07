@@ -80,3 +80,16 @@ class Course(models.Model):
 
     def __str__(self):
         return self.title
+    
+class CourseModule(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='models')
+    title = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    order = models.IntegerField(unique=True)
+
+    class Meta:
+        ordering = ['order']
+        unique_together = ['course', 'order']
+
+    def __str__(self):
+        return f'{self.course.title} - {self.title}'
