@@ -51,3 +51,32 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
+    
+class Course(models.Model):
+    LEVEL_CHOICES = (
+        ('BEGINNER', 'Biginner'),
+        ('INTERMEDIATE', 'Intermediate'),
+        ('ADVANCED', 'Advanced')
+    )
+
+    title = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True)
+    description = models.TextField(blank=True, null=True)
+    thumbnail = models.ImageField(upload_to='courses/thumbnails/', blank=True, null=True)
+
+    instructor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='courses')
+    category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='courses')
+
+    price = models.DecimalField(max_digits=7, decimal_places=2)
+    level = models.CharField(choices=LEVEL_CHOICES, default='BEGINNER')
+    duration = models.IntegerField(help_text='Duration in minutes')
+    is_published = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.title
