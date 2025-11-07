@@ -51,7 +51,7 @@ class UserLoginSerializer(serializers.Serializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['phone_number', 'date_of_birth', 'expertise']
+        fields = ['phone_number', 'data_of_birth', 'expertise']
 
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer()
