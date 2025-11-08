@@ -87,3 +87,10 @@ class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
         exclude = ['module']
+
+class ModuleSerializer(serializers.ModelSerializer):
+    lessons = LessonSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = CourseModule
+        fields = ['id', 'title', 'description', 'order', 'lessons']
