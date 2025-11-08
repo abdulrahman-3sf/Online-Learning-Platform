@@ -108,3 +108,12 @@ class CourseListSerializer(serializers.ModelSerializer):
     
     def get_category_name(self, obj):
         return obj.category.name
+    
+class CourseDetailSerializer(serializers.ModelSerializer):
+    modules = ModuleSerializer(many=True, read_only=True)
+    instructor = UserSerializer(read_only=True)
+    category = CategorySerializer(read_only=True)
+
+    class Meta:
+        model = Course
+        fields = '__all__'
