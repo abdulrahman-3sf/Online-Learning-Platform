@@ -94,3 +94,17 @@ class ModuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = CourseModule
         fields = ['id', 'title', 'description', 'order', 'lessons']
+
+class CourseListSerializer(serializers.ModelSerializer):
+    instructor_name = serializers.SerializerMethodField()
+    category_name = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Course
+        fields = ['id', 'title', 'slug', 'thumbnail', 'instructor_name', 'category_name', 'price', 'level', 'is_published', 'created_at']
+
+    def get_instructor_name(self, obj):
+        return f'{obj.instructor.first_name} {obj.instructor.last_name}'
+    
+    def get_category_name(self, obj):
+        return obj.category.name
