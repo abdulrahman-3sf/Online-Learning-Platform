@@ -123,3 +123,32 @@ class ModuleViewSet(viewsets.ModelViewSet):
             raise PermissionDenied('You can only add modules to your own courses!')
         
         serializer.save(course=course)
+
+class LessonViewSet(viewsets.ModelViewSet):
+    queryset = Lesson.objects.all()
+    serializer_class = LessonSerializer
+    permission_classes = [IsInstructorOrReadOnly]
+
+    def get_queryset(self):
+        module_id = self.request.query_params.get('module_id')
+
+        if module_id:
+            queryset = queryset.filter(id=module_id)
+
+        return queryset
+    
+    def perform_create(self, serializer):
+        module_id = self.request.data.get('module')
+
+        if not module_id:
+            raise ValueError('Module field is required!')
+        
+        try:
+            module = CourseModule.objects.get(id=module_id)
+        except CourseModule.DoesNotExist:
+            raise ValueError('Module not found!')
+        
+        if module.course.instructor != self.request.user:
+            raise PermissionDenied("You can only add lessons to your own courses!")
+        
+        serializer.save(module=module)
