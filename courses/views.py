@@ -1,10 +1,11 @@
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework import status, viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserRegisterationSerializer, UserLoginSerializer, UserSerializer, CategorySerializer
-from .models import Category
+from .serializers import UserRegisterationSerializer, UserLoginSerializer, UserSerializer, CategorySerializer, CourseListSerializer, CourseDetailSerializer
+from .models import Category, Course
+from .permissions import IsInstructorOrReadOnly
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -69,3 +70,26 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [AllowAny]
+
+class CourseViewSet(viewsets.ModelViewSet):
+    queryset = Course.objects.all()
+    serializer_class = CourseListSerializer
+    permission_classes = [IsInstructorOrReadOnly]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_authenticated and user.role == 'INSTRUCTOR':
+            return Course.objects.filter(instructor=user)
+        else:
+            return Course.objects.filter(is_published=True)
+        
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CourseListSerializer
+        elif self.action == 'retrieve':
+            return CourseDetailSerializer
+        return CourseListSerializer
+    
+    def perform_create(self, serializer):
+        serializer.save(instructor=self.request.user)
