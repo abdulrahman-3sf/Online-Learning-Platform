@@ -1,10 +1,11 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from rest_framework import status, viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserRegisterationSerializer, UserLoginSerializer, UserSerializer, CategorySerializer, CourseListSerializer, CourseDetailSerializer
-from .models import Category, Course
+from .serializers import UserRegisterationSerializer, UserLoginSerializer, UserSerializer, CategorySerializer, CourseListSerializer, CourseDetailSerializer, ModuleSerializer, LessonSerializer
+from .models import Category, Course, CourseModule, Lesson
 from .permissions import IsInstructorOrReadOnly
 
 @api_view(['POST'])
@@ -93,3 +94,32 @@ class CourseViewSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         serializer.save(instructor=self.request.user)
+
+class ModuleViewSet(viewsets.ModelViewSet):
+    queryset = CourseModule.objects.all()
+    serializer_class = ModuleSerializer
+    permission_classes = [IsInstructorOrReadOnly]
+
+    def get_queryset(self):
+        course_id = self.request.query_params.get('course_id')
+
+        if course_id:
+            queryset = queryset.filter(course_id=course_id)
+
+        return queryset
+    
+    def perform_create(self, serializer):
+        course_id = self.request.data.get('course')
+
+        if not course_id:
+            raise ValueError('Course field is required!')
+
+        try:
+            course = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            raise ValueError('Course not found!')
+
+        if course.instructor != self.request.user:
+            raise PermissionDenied('You can only add modules to your own courses!')
+        
+        serializer.save(course=course)
