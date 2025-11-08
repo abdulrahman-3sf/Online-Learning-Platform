@@ -82,3 +82,8 @@ class CategorySerializer(serializers.ModelSerializer):
         model = Category
         fields = '__all__'
         # read_only_fields = ['id', 'name', 'slug', 'description']
+
+class LessonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Lesson
+        exclude = ['module']
