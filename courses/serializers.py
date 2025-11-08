@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, UserProfile
+from .models import CustomUser, UserProfile, Category, Course, CourseModule, Lesson
 from django.contrib.auth import authenticate
 
 class UserRegisterationSerializer(serializers.ModelSerializer):
@@ -51,7 +51,7 @@ class UserLoginSerializer(serializers.Serializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['phone_number', 'data_of_birth', 'expertise']
+        fields = ['phone_number', 'date_of_birth', 'expertise']
 
 class UserSerializer(serializers.ModelSerializer):
     profile = UserProfileSerializer()

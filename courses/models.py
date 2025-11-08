@@ -30,7 +30,7 @@ class CustomUser(AbstractUser):
 class UserProfile(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='profile')
     phone_number = models.CharField(max_length=20, blank=True)
-    data_of_birth = models.DateField(blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True)
     expertise = models.TextField(blank=True, help_text='Areas of expertise (for instructors)')
 
     def __str__(self):
