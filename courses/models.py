@@ -127,3 +127,23 @@ class Lesson(models.Model):
 
     def __str__(self):
         return f'{self.module.title} - {self.title}'
+    
+class Enrollment(models.Model):
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='enrollments', limit_choices_to={'role': 'STUDENT'})
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrollments')
+    enrolled_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(blank=True, null=True)
+    progress_percentage = models.FloatField(default=0.0)
+    is_completed = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-enrolled_at']
+        unique_together = ['student', 'course']
+        verbose_name = 'Enrollment'
+        verbose_name_plural = 'Enrollments'
+
+    def __str__(self):
+        return f"{self.student.get_full_name()} enrolled in {self.course.title}"
+    
+    def calculate_progress(self):
+        pass
