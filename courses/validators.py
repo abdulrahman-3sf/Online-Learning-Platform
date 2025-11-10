@@ -26,3 +26,11 @@ def validate_video_url(value):
 
     if not allowed_url:
         raise ValidationError('Only youtube urls are allowed!')
+    
+def validate_document_file(file):
+    ext = os.path.splitext(file.name)[1].lower()
+
+    valid_extensions = ['.pdf', '.doc', '.docx', '.txt']
+
+    if ext not in valid_extensions:
+        raise ValidationError(f'Invalid file type. Allowed: {" ".join(valid_extensions)}')
