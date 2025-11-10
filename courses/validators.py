@@ -16,8 +16,13 @@ def validate_image_file(file):
     if ext not in valid_extensions:
         raise ValidationError(f'Invalid file type. Allowed: {" ".join(valid_extensions)}')
 
-def validate_document_file(file):
-    pass
-
 def validate_video_url(value):
-    pass
+    allowed_url = False
+    allowed_domains = ['youtube.com']
+
+    for domain in allowed_domains:
+        if domain in value.lower():
+            allowed_url = True
+
+    if not allowed_url:
+        raise ValidationError('Only youtube urls are allowed!')
