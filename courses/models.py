@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from .validators import validate_file_size, validate_image_file, validate_video_url, validate_document_file
 
 class CustomUser(AbstractUser):
     ROLE_CHOICES = (
@@ -11,7 +12,7 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='STUDENT')
     bio = models.TextField(blank=True, null=True, help_text='Short bio about yourself')
-    profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True, help_text='Profile picture')
+    profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True, help_text='Profile picture', validators=[validate_file_size, validate_image_file])
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username', 'first_name', 'last_name']
@@ -63,7 +64,7 @@ class Course(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True, max_length=200)
     description = models.TextField()
-    thumbnail = models.ImageField(upload_to='courses/thumbnails/', blank=True, null=True)
+    thumbnail = models.ImageField(upload_to='courses/thumbnails/', blank=True, null=True, validators=[validate_file_size, validate_image_file])
 
     instructor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='courses')
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='courses')
@@ -112,8 +113,8 @@ class Lesson(models.Model):
     lesson_type = models.CharField(max_length=20, choices=LESSON_TYPE_CHOICES, default='VIDEO')
     order = models.IntegerField()
     
-    video_url = models.URLField(blank=True, null=True, help_text='YouTube or Vimeo URL')
-    document_file = models.FileField(upload_to='lessons/documents/',blank=True, null=True, help_text='PDF, DOCX, etc.')
+    video_url = models.URLField(blank=True, null=True, help_text='YouTube or Vimeo URL', validators=[validate_video_url])
+    document_file = models.FileField(upload_to='lessons/documents/',blank=True, null=True, help_text='PDF, DOCX, etc.', validators=[validate_file_size, validate_document_file])
 
     duration = models.IntegerField(blank=True, null=True, help_text='Duration in minutes')
     is_preview = models.BooleanField(default=False, help_text='Can non-enrolled students view this lesson?')
