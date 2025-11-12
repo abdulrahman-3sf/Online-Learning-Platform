@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CustomUser, UserProfile, Category, Course, CourseModule, Lesson
+from .models import CustomUser, UserProfile, Category, Course, CourseModule, Lesson, Enrollment
 from django.contrib.auth import authenticate
 
 class UserRegisterationSerializer(serializers.ModelSerializer):
@@ -117,3 +117,27 @@ class CourseDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = '__all__'
+
+class EnrollmentSerializer(serializers.ModelSerializer):
+    student_name = serializers.CharField(source='student.get_fullname', read_only=True)
+    student_email = serializers.EmailField(source='course.email', read_only=True)
+    course_title = serializers.CharField(source='course.title', read_only=True)
+    course_thumbnail = serializers.ImageField(source='course.thumbnail', read_only=True)
+
+    class Meta:
+        model = Enrollment
+        fields = '__all__'
+        read_only_fields = ['student', 'enrolled_at', 'completed_at', 'progress_percentage', 'is_completed']
+
+    def validate(self, data):
+        request = self.context.get('request')
+
+        if request and request.user:
+            student = request.user
+            course = data.get('course')
+
+            if Enrollment.objects.filter(student=student, course=course).exists():
+                raise serializers.ValidationError('Student already enrolled in this course')
+            
+        return data
+
